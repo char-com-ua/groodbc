@@ -1,0 +1,147 @@
+
+<project name="groodbc" basedir="." default="build">
+
+	<property environment="env" />
+	<property name="dest.dir" value="build" />
+	<property name="dest.dir.classes" value="${dest.dir}/classes" />
+	<property name="dest.dir.lib" value="${dest.dir}" />
+	<property name="artefact.name" value="${ant.project.name}" />
+	<property name="artefact" value="${artefact.name}.jar" />
+	<property name="dependency" value="./lib" />
+
+	<target name="clean">
+		<delete dir="${dest.dir}" />
+		<delete dir="./log" />
+	</target>
+	
+
+	<!--target name="init" depends="svn-version,get-tchome"-->
+	<target name="init" >
+		<mkdir dir="${dest.dir}" />
+		<mkdir dir="${dest.dir.classes}" />
+		<mkdir dir="${dest.dir.classes}/META-INF"/>
+		
+		<path id="build.classpath">
+			<fileset dir="${dependency}" >
+				<include name="*.jar"/>
+			</fileset>
+		</path>
+	</target>
+
+	<target name="build" depends="clean,init">
+		<javac srcdir="src" destdir="${dest.dir.classes}" includes="**" debug="true" debuglevel="lines,vars,source">
+			<classpath refid="build.classpath" />
+		</javac>
+		<!--MANIFEST-->
+		<tstamp><format property="built.date" pattern="yyyy-MM-dd HH:mm" /></tstamp>
+		<manifest file="${dest.dir.classes}/META-INF/manifest.mf">
+			<attribute name="Built-Date" value="${built.date}"/>
+			<section name="SVN">
+				<attribute name="URL" value="${svn.url}"/>
+				<attribute name="Revision" value="${svn.revision}"/>
+				<attribute name="Version" value="${svn.version}"/>
+			</section>
+		</manifest>
+		<!--JAR-->
+		<jar basedir="${dest.dir.classes}" destfile="${dest.dir.lib}/${artefact}" manifest="${dest.dir.classes}/META-INF/manifest.mf"/>
+	</target>
+
+	<target name="test" depends="init" >
+		<java classname="org.t24.driver.test.Test" dir="." fork="true" output="out.txt" failonerror="true">
+			<classpath refid="build.classpath" />
+			<jvmarg value="-Dfile.encoding=utf-8"/>
+			<sysproperty key="tc.home" value="${tcclient.home}"/>
+		</java>
+	</target>
+
+	<target name="release" depends="clean,init,build" >
+		<copy file="readme.txt" todir="${dest.dir}">
+			<filterchain>
+				<expandproperties/>
+			</filterchain>
+		</copy>
+        <zip zipfile="${dest.dir}/${artefact.name}-${svn.version}.zip">
+			<zipfileset dir="${dest.dir}" includes="readme.txt"/>
+			<zipfileset dir="${dest.dir}" includes="*.jar"/>
+			<zipfileset dir="." includes="conf/**.*"/>
+			<zipfileset dir="." includes="example/**/**.*"/>
+        </zip>
+	</target>
+
+	<target name="svn-version" >
+		<!-- GET SVN REVISION INFORMATION -->
+		<tempfile property="svn.temp" deleteonexit="true"/>
+		
+		<exec executable="svn" output="${svn.temp}">
+			<arg value="info"/>
+			<arg value="."/>
+		</exec>
+		
+		<!--GENERATE VERSION FROM SVN INFO-->
+
+		<loadproperties srcfile="${svn.temp}" >
+			<filterchain>
+				<tokenfilter>
+					<containsregex pattern="^Last Changed Rev:\s*(\d+).*$" replace="svn.revision=\1"/>
+				</tokenfilter>
+			</filterchain>
+		</loadproperties>
+		
+		<loadproperties srcfile="${svn.temp}" >
+			<filterchain>
+				<tokenfilter>
+					<containsregex pattern="^URL:\s*(.*)$" replace="svn.url=\1"/>
+				</tokenfilter>
+			</filterchain>
+		</loadproperties>
+		
+		<loadproperties srcfile="${svn.temp}" >
+			<filterchain>
+				<tokenfilter>
+					<containsregex pattern="^URL:\s*.*" />
+					<replaceregex pattern="^.*/trunk$" replace="svn.version=trunk.r${svn.revision}" flags="g"/>
+					<replaceregex pattern="^.*/tags/(.*)$" replace="svn.version=\1" flags="g"/>
+					<replaceregex pattern="^.*/branches/(.*)$" replace="svn.version=\1.r${svn.revision}b" flags="g"/>
+				</tokenfilter>
+			</filterchain>
+		</loadproperties>
+
+		<echo message="version=${svn.version}" />
+	</target>
+	
+	<target name="groovy" description="start groovy console with tcclibs" >
+		<!--
+		"C:\Work\Java\jdk1.6.0_06\bin\java.exe" 
+			"-Xmx128m" 
+			-Dprogram.name="" 
+			-Dgroovy.home="C:\11\svn\mw\projects\services\ESB-Int\trunk\.tools\groovy\bin\.." 
+			-Dtools.jar="C:\Work\Java\jdk1.6.0_06\lib\tools.jar" 
+			-Dgroovy.starter.conf="C:\11\svn\mw\projects\services\ESB-Int\trunk\.tools\groovy\bin\..\conf\groovy-starter.conf" 
+			-Dscript.name="" 
+			-Dfile.encoding=windows-1251 
+			-classpath "C:\11\svn\mw\projects\services\ESB-Int\trunk\.tools\groovy\bin\..\lib\groovy-1.7.5.jar" 
+			org.codehaus.groovy.tools.GroovyStarter 
+			- -main groovy.ui.Console 
+			- -conf "C:\11\svn\mw\projects\services\ESB-Int\trunk\.tools\groovy\bin\..\conf\groovy-starter.conf" 
+			- -classpath "."  
+		-->
+		<java classname="org.codehaus.groovy.tools.GroovyStarter" fork="true" jvm="javaw" spawn="true">
+			<!--classpath refid="groovy.classpath"/-->
+			<classpath>
+				<pathelement location="./.tools/groovy/lib/groovy-all-2.4.4.jar"/>
+			</classpath>
+			<jvmarg value="-Dfile.encoding=windows-1251"/>
+			<jvmarg value="-Xmx128m"/>
+			<jvmarg value='-Dprogram.name=""'/>
+			<jvmarg value='-Dscript.name=""'/>
+			<jvmarg value='-Dgroovy.home=".tools/groovy"'/>
+			<jvmarg value='-Dgroovy.starter.conf=".tools/groovy/conf/groovy-starter.conf"'/>
+			
+			<arg value='--main'/>
+			<arg value='groovy.ui.Console'/>
+			<arg value='--calsspath'/>
+			<arg value='"."'/>
+		</java>
+	</target>
+
+</project>
