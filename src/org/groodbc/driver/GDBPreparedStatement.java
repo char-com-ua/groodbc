@@ -15,13 +15,20 @@ public class GDBPreparedStatement implements PreparedStatement {
 	//original sql statement
 	private String sql=null;
 	private GDBConnection con;
-	private ParamList param = new ParamList();
+	private ParamList param;
     //private ResultSet result = null;
     private GDBResultSet result = null;
 
 	
 	protected GDBPreparedStatement(GDBConnection con, String sql)throws SQLException{
 		this.con=con;
+		setSql(sql);
+	}
+	
+	
+	protected void setSql(String sql){
+		this.result=null;
+		param = new ParamList();
 		this.sql=sql;
 	}
 
@@ -180,13 +187,15 @@ public class GDBPreparedStatement implements PreparedStatement {
         throw new GDBFeatureNotSupportedException();
     }
     public ResultSet executeQuery(String sql) throws SQLException {
-    	throw new GDBFeatureNotSupportedException();
+    	this.setSql(sql);
+    	return executeQuery();
     }
     public int executeUpdate(String sql) throws SQLException {
     	throw new GDBFeatureNotSupportedException();
     }
     public boolean execute(String sql) throws SQLException {
-    	throw new GDBFeatureNotSupportedException();
+    	this.setSql(sql);
+    	return execute();
     }
     public void setCursorName(String name) throws SQLException {
         throw new GDBFeatureNotSupportedException();

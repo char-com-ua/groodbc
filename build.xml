@@ -26,6 +26,12 @@
 				<include name="*.jar"/>
 			</fileset>
 		</path>
+		<path id="test.classpath">
+			<path refid="build.classpath"/>
+			<fileset dir="${dest.dir.lib}" >
+				<include name="*.jar"/>
+			</fileset>
+		</path>
 	</target>
 
 	<target name="build" depends="clean,init">
@@ -47,10 +53,15 @@
 	</target>
 
 	<target name="test" depends="init" >
-		<java classname="org.t24.driver.test.Test" dir="." fork="true" output="out.txt" failonerror="true">
-			<classpath refid="build.classpath" />
-			<jvmarg value="-Dfile.encoding=utf-8"/>
-			<sysproperty key="tc.home" value="${tcclient.home}"/>
+		<property name="script" value="Test"/>
+		<java classname="groovy.ui.GroovyMain" fork="true" failonerror="true" inputstring="" logerror="true" output="test.log">
+			<classpath refid="test.classpath"/>
+			<jvmarg value="-Dfile.encoding=UTF-8"/>
+			<!--jvmarg value="-Djavax.net.debug=all"/-->
+			<!--jvmarg value="-Djava.util.logging.config.file=logging.properties"/-->
+			<jvmarg value="-Duser.country=US"/>
+			<jvmarg value="-Duser.language=en"/>
+			<arg value="./test/${script}.groovy"/>
 		</java>
 	</target>
 

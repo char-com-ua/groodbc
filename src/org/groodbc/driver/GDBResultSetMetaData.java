@@ -35,7 +35,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
 		if( rows.size()>0 ){
 			nameToIndex = new HashMap();
 			indexToName = new ArrayList( new TreeSet<String>( rows.get(0).keySet() ) );
-			indexToType = new ArrayList(indexToType);
+			indexToType = new ArrayList(indexToName);
 			for(int i=0;i<indexToName.size();i++){
 				String name=indexToName.get(i);
 				int type = Types.VARCHAR;
