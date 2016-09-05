@@ -2782,7 +2782,7 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @exception SQLException if a database access error occurs
      * @since 1.4
      */
-    public boolean supportsNamedParameters() throws SQLException{return false;}
+    public boolean supportsNamedParameters() throws SQLException{return true;}
 
     /**
      * Retrieves whether it is possible to have multiple <code>ResultSet</code> objects

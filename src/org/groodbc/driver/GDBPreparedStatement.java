@@ -15,7 +15,7 @@ public class GDBPreparedStatement implements PreparedStatement {
 	//original sql statement
 	private String sql=null;
 	private GDBConnection con;
-	private ParamList param;
+	private Map param;
     //private ResultSet result = null;
     private GDBResultSet result = null;
 
@@ -28,7 +28,7 @@ public class GDBPreparedStatement implements PreparedStatement {
 	
 	protected void setSql(String sql){
 		this.result=null;
-		param = new ParamList();
+		param = new LinkedHashMap();
 		this.sql=sql;
 	}
 
@@ -38,6 +38,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
 		vars.put("data",con.data);
+		vars.put("param",param);
 		
     	List rows = (List)script.run();
     	
@@ -86,11 +87,11 @@ public class GDBPreparedStatement implements PreparedStatement {
 	/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!===PREPARED STATEMENT===!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
     public void setNull(int parameterIndex, int sqlType) throws SQLException{
-    	param.set(parameterIndex-1,null);
+    	param.put( new Integer(parameterIndex),null);
     }
     
     public void setObject(int parameterIndex, Object x) throws SQLException{
-    	param.set(parameterIndex-1,x);
+    	param.put( new Integer(parameterIndex),x);
     }
 
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException{
@@ -102,35 +103,35 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
     
     public void setString(int parameterIndex, String x) throws SQLException{
-    	param.set(parameterIndex-1, x);
+    	param.put( new Integer(parameterIndex), x);
     }
 
     public void setShort(int parameterIndex, short x) throws SQLException{
-    	param.set(parameterIndex-1,new Short(x));
+    	param.put( new Integer(parameterIndex),new Short(x));
     }
 
     public void setInt(int parameterIndex, int x) throws SQLException{
-    	param.set(parameterIndex-1, new Integer(x));
+    	param.put( new Integer(parameterIndex), new Integer(x));
     }
 
     public void setLong(int parameterIndex, long x) throws SQLException{
-    	param.set(parameterIndex-1, new Long(x));
+    	param.put( new Integer(parameterIndex), new Long(x));
     }
     
     public void setFloat(int parameterIndex, float x) throws SQLException{
-    	param.set(parameterIndex-1, new Float(x));
+    	param.put( new Integer(parameterIndex), new Float(x));
     }
 
     public void setDouble(int parameterIndex, double x) throws SQLException{
-    	param.set(parameterIndex-1, new Double(x));
+    	param.put( new Integer(parameterIndex), new Double(x));
     }
 
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException{
-    	param.set(parameterIndex-1, x);
+    	param.put( new Integer(parameterIndex), x);
     }
 
     public void setDate(int parameterIndex, java.sql.Date x) throws SQLException{
-		param.set( parameterIndex-1, x );
+		param.put( new Integer(parameterIndex), x );
     }
 
     public void clearParameters() throws SQLException{
@@ -184,7 +185,6 @@ public class GDBPreparedStatement implements PreparedStatement {
     public void setQueryTimeout(int seconds) throws SQLException {
     }
     public void cancel() throws SQLException {
-        throw new GDBFeatureNotSupportedException();
     }
     public ResultSet executeQuery(String sql) throws SQLException {
     	this.setSql(sql);
@@ -206,11 +206,11 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public void setBoolean(int parameterIndex, boolean x) throws SQLException{
-    	throw new GDBFeatureNotSupportedException();
+    	param.put( new Integer(parameterIndex), new Boolean(x));
     }
 
     public void setByte(int parameterIndex, byte x) throws SQLException{
-    	throw new GDBFeatureNotSupportedException();
+    	param.put( new Integer(parameterIndex), new Byte(x));
     }
 
     public void setTime(int parameterIndex, java.sql.Time x) throws SQLException{
