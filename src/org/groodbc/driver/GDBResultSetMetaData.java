@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.TreeSet;
-import java.sql.Types;
+//import java.sql.Types;
+import org.groodbc.util.Types;
 
 /**
  * An object that can be used to get information about the types 
@@ -28,25 +29,21 @@ import java.sql.Types;
 
 public class GDBResultSetMetaData implements ResultSetMetaData {
 	private Map<String,Integer> nameToIndex;
-	private List<Integer> indexToType;
+	private List<Class> indexToType;
 	private List<String> indexToName;
 	
 	protected GDBResultSetMetaData(List<Map<String,Object>> rows) {
 		if( rows.size()>0 ){
 			nameToIndex = new HashMap();
 			indexToName = new ArrayList( new TreeSet<String>( rows.get(0).keySet() ) );
-			indexToType = new ArrayList(indexToName);
+			indexToType = new ArrayList(indexToName.size());
 			for(int i=0;i<indexToName.size();i++){
 				String name=indexToName.get(i);
-				int type = Types.VARCHAR;
+				Class type = String.class;
 				Object v = rows.get(0).get(name);
-				if(v!=null){
-					if(v instanceof java.util.Date)type=Types.DATE;
-					else if(v instanceof Number)   type=Types.DECIMAL;
-					else if(v instanceof Boolean)  type=Types.BOOLEAN;
-				}
-				nameToIndex.put(name,new Integer(i));
+				if(v!=null)type=v.getClass();
 				indexToType.add(type);
+				nameToIndex.put(name,new Integer(i));
 			}
 			
 		}else{
@@ -54,11 +51,11 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
 			indexToName = new ArrayList();
 			indexToType = new ArrayList();
 		}
+		//System.out.println("GDBResultSetMetaData() :: indexToName="+indexToName);
+		//System.out.println("GDBResultSetMetaData() :: indexToType="+indexToType);
+		//System.out.println("GDBResultSetMetaData() :: nameToIndex="+nameToIndex);
 	}
 
-    protected List<String> getColumnNames() {
-        return indexToName;
-    }    
     /**
      * Returns the number of columns in this <code>ResultSet</code> object.
      *
@@ -138,7 +135,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int isNullable(int column) throws SQLException{
-    	return ResultSetMetaData.columnNullableUnknown;
+    	return ResultSetMetaData.columnNullable;
     }
 
     /**
@@ -149,7 +146,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public boolean isSigned(int column) throws SQLException{
-    	return false;
+    	return Types.isSigned( indexToType.get(column-1) );
     }
 
     /**
@@ -161,7 +158,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getColumnDisplaySize(int column) throws SQLException{
-    	return 45;
+    	return Types.getPrecision( indexToType.get(column-1) );
     }
 
     /**
@@ -206,7 +203,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getPrecision(int column) throws SQLException{
-    	return 0;
+    	return Types.getPrecision( indexToType.get(column-1) );
     }
 
     /**
@@ -217,7 +214,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getScale(int column) throws SQLException{
-    	return 0;
+    	return Types.getScale( indexToType.get(column-1) );
     }
 
     /**
@@ -252,7 +249,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @see Types
      */
     public int getColumnType(int column) throws SQLException{
-    	return indexToType.get( column ).intValue();
+    	return Types.getSqlType( indexToType.get(column-1) );
     }
 
     /**
@@ -264,7 +261,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public String getColumnTypeName(int column) throws SQLException{
-    	return "Types"+getColumnType(column);
+    	return Types.getSqlTypeName( indexToType.get(column-1) );
     }
 
     /**
@@ -318,7 +315,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @since 1.2
      */
     public String getColumnClassName(int column) throws SQLException{
-    	return "java.lang.Object";
+    	return indexToType.get(column-1).getName();
     }
 
     /*Wrapper*/

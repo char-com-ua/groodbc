@@ -8,6 +8,8 @@ import java.text.*;
 import java.io.Reader;
 import java.io.InputStream;
 import groovy.lang.Script;
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.MethodClosure;
 
 
 public class GDBPreparedStatement implements PreparedStatement {
@@ -15,30 +17,61 @@ public class GDBPreparedStatement implements PreparedStatement {
 	//original sql statement
 	private String sql=null;
 	private GDBConnection con;
-	private Map param;
+	private ArrayList<Object> param;
     //private ResultSet result = null;
     private GDBResultSet result = null;
+    private GDBParameterMetaData pmd = null;
+    
+    //private static Closures closures = new Closures();
 
 	
 	protected GDBPreparedStatement(GDBConnection con, String sql)throws SQLException{
+		//System.out.println("GDBPreparedStatement() :: "+con+" :: "+sql);
 		this.con=con;
 		setSql(sql);
 	}
 	
 	
-	protected void setSql(String sql){
-		this.result=null;
-		param = new LinkedHashMap();
-		this.sql=sql;
+	protected void setSql(String sql)throws SQLException{
+		try{
+			this.result=null;
+			this.sql=sql;
+			if(sql!=null){
+				Script script = con.getGroovyScript( this.sql );
+				Map vars=script.getBinding().getVariables();
+				vars.clear();
+				vars.put("data",con.data);
+				script.run();
+				Closure select = (Closure)vars.get("select");
+				Class[] parmTypes = select.getParameterTypes();
+				LinkedHashMap<String,Class> pmdMap = new LinkedHashMap();
+				param = new ArrayList(parmTypes.length);
+				for(int i=0;i<parmTypes.length;i++){
+					pmdMap.put("arg"+i, parmTypes[i]);
+					param.add(null);
+				}
+				pmd = new GDBParameterMetaData(pmdMap);
+			}else{
+				pmd = new GDBParameterMetaData(null);
+			}
+		}catch(Throwable t){
+			throw new GDBException("Failed to parse groovy script: "+t,t);
+		}
 	}
+	
+    public ParameterMetaData getParameterMetaData() throws SQLException{
+		return pmd;
+    }
 
     public boolean execute() throws SQLException{
-    	Script script = con.getGroovyScript( sql );
-    	//prepare binding
+    	Script script = con.getGroovyScript( sql + "\nselect.call(PARAMETERS)" );
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
 		vars.put("data",con.data);
-		vars.put("param",param);
+		
+		//convert map to list
+		
+		vars.put("PARAMETERS",param);
 		
     	List rows = (List)script.run();
     	
@@ -87,11 +120,11 @@ public class GDBPreparedStatement implements PreparedStatement {
 	/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!===PREPARED STATEMENT===!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
     public void setNull(int parameterIndex, int sqlType) throws SQLException{
-    	param.put( new Integer(parameterIndex),null);
+    	param.set( parameterIndex-1,null);
     }
     
     public void setObject(int parameterIndex, Object x) throws SQLException{
-    	param.put( new Integer(parameterIndex),x);
+    	param.set( parameterIndex-1,x);
     }
 
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException{
@@ -103,35 +136,35 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
     
     public void setString(int parameterIndex, String x) throws SQLException{
-    	param.put( new Integer(parameterIndex), x);
+    	param.set( parameterIndex-1, x);
     }
 
     public void setShort(int parameterIndex, short x) throws SQLException{
-    	param.put( new Integer(parameterIndex),new Short(x));
+    	param.set( parameterIndex-1,new Short(x));
     }
 
     public void setInt(int parameterIndex, int x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Integer(x));
+    	param.set( parameterIndex-1, new Integer(x));
     }
 
     public void setLong(int parameterIndex, long x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Long(x));
+    	param.set( parameterIndex-1, new Long(x));
     }
     
     public void setFloat(int parameterIndex, float x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Float(x));
+    	param.set( parameterIndex-1, new Float(x));
     }
 
     public void setDouble(int parameterIndex, double x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Double(x));
+    	param.set( parameterIndex-1, new Double(x));
     }
 
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException{
-    	param.put( new Integer(parameterIndex), x);
+    	param.set( parameterIndex-1, x);
     }
 
     public void setDate(int parameterIndex, java.sql.Date x) throws SQLException{
-		param.put( new Integer(parameterIndex), x );
+		param.set( parameterIndex-1, x );
     }
 
     public void clearParameters() throws SQLException{
@@ -139,7 +172,8 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public ResultSetMetaData getMetaData() throws SQLException{
-    	return null;
+        //throw new GDBFeatureNotSupportedException();
+        return null;
     }
 
     public void setDate(int parameterIndex, java.sql.Date x, Calendar cal) throws SQLException{
@@ -206,11 +240,11 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public void setBoolean(int parameterIndex, boolean x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Boolean(x));
+    	param.set( parameterIndex-1, new Boolean(x));
     }
 
     public void setByte(int parameterIndex, byte x) throws SQLException{
-    	param.put( new Integer(parameterIndex), new Byte(x));
+    	param.set( parameterIndex-1, new Byte(x));
     }
 
     public void setTime(int parameterIndex, java.sql.Time x) throws SQLException{
@@ -241,9 +275,6 @@ public class GDBPreparedStatement implements PreparedStatement {
     	throw new GDBFeatureNotSupportedException();
     }
     public void setURL(int parameterIndex, java.net.URL x) throws SQLException{
-    	throw new GDBFeatureNotSupportedException();
-    }
-    public ParameterMetaData getParameterMetaData() throws SQLException{
     	throw new GDBFeatureNotSupportedException();
     }
     public void addBatch() throws SQLException{

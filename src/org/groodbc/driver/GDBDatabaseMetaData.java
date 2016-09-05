@@ -1,6 +1,7 @@
 package org.groodbc.driver;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class GDBDatabaseMetaData implements DatabaseMetaData {
 	GDBConnection conn;
@@ -1457,7 +1458,9 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @see #getSearchStringEscape 
      */
     public ResultSet getTables(String catalog, String schemaPattern,
-			String tableNamePattern, String types[]) throws SQLException{throw new GDBFeatureNotSupportedException();}
+			String tableNamePattern, String types[]) throws SQLException{
+    	return new GDBResultSet(new ArrayList());
+	}
 
     /**
      * Retrieves the schema names available in this database.  The results
@@ -1475,7 +1478,9 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @exception SQLException if a database access error occurs
      *
      */
-    public ResultSet getSchemas() throws SQLException{throw new GDBFeatureNotSupportedException();}
+    public ResultSet getSchemas() throws SQLException{
+    	return new GDBResultSet(new ArrayList());
+    }
 
     /**
      * Retrieves the catalog names available in this database.  The results
@@ -1490,7 +1495,9 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      *         single <code>String</code> column that is a catalog name 
      * @exception SQLException if a database access error occurs
      */
-    public ResultSet getCatalogs() throws SQLException{throw new GDBFeatureNotSupportedException();}
+    public ResultSet getCatalogs() throws SQLException{
+    	return new GDBResultSet(new ArrayList());
+    }
 
     /**
      * Retrieves the table types available in this database.  The results
@@ -1507,7 +1514,9 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      *         single <code>String</code> column that is a table type 
      * @exception SQLException if a database access error occurs
      */
-    public ResultSet getTableTypes() throws SQLException{throw new GDBFeatureNotSupportedException();}
+    public ResultSet getTableTypes() throws SQLException{
+    	return new GDBResultSet(new ArrayList());
+    }
 
     /**
      * Retrieves a description of table columns available in 
@@ -2782,7 +2791,7 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @exception SQLException if a database access error occurs
      * @since 1.4
      */
-    public boolean supportsNamedParameters() throws SQLException{return true;}
+    public boolean supportsNamedParameters() throws SQLException{return false;}
 
     /**
      * Retrieves whether it is possible to have multiple <code>ResultSet</code> objects
@@ -3108,7 +3117,7 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @throws SQLException if a database access error occurs 
      * @since 1.4
      */
-    public int getSQLStateType() throws SQLException{return 0;}
+    public int getSQLStateType() throws SQLException{return sqlStateSQL;}
 
     /**
      * Indicates whether updates made to a LOB are made on a copy or directly 
@@ -3177,7 +3186,9 @@ public class GDBDatabaseMetaData implements DatabaseMetaData {
      * @see #getSearchStringEscape 
      * @since 1.6
      */
-    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException{throw new GDBFeatureNotSupportedException();}
+    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException{
+    	return new GDBResultSet(new ArrayList());
+    }
     
     /**
      * Retrieves whether this database supports invoking user-defined or vendor functions 

@@ -44,6 +44,7 @@ public class GDBConnection implements Connection {
 	 * @param dataSet the data object that will be passed to create prepared statement as $data
 	 */
 	public GDBConnection(Object data) {
+		//System.out.println("GDBConnection() :: "+data);
 		this.data = data;
 	}
 
@@ -61,7 +62,7 @@ public class GDBConnection implements Connection {
 	
 	
 	static Script getGroovyScript(String scriptText){
-		String scriptName="groodbc$"+Long.toHexString(scriptText.hashCode())+".groovy";
+		String scriptName="groodbc_"+Long.toHexString(scriptText.hashCode())+".groovy";
 		Script script=(Script)shell.parse(scriptText, scriptName);
 		return script;
 	}
