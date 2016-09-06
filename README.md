@@ -44,7 +44,7 @@ GDBConnection connection = new GDBConnection(data);
 }}
 ```
 ### select for all menu items
-```sql
+```groovy
 select = {-> data.menu.popup.menuitem }
 ```
 * `data` is a reference to the object evaluated/passed on the level of connection.
@@ -52,12 +52,12 @@ select = {-> data.menu.popup.menuitem }
 * `.menu.popup.menuitem` is an accessor for json object. the select closure must return `List<Map<String,Object>>`
 
 ### select with param
-```sql
+```groovy
 select = {String p_value-> data.menu.popup.menuitem.findAll{ it.value == p_value } }
 ```
 
 ###  aggregated data
-```sql
+```groovy
 select = {-> 
   [
     //wrap one row into a list
