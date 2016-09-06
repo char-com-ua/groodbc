@@ -60,9 +60,13 @@ select = {String p_value-> data.menu.popup.menuitem.findAll{ it.value == p_value
 ```sql
 select = {-> 
   [
-    'COUNT'     :data.menu.popup.menuitem.size(),
-    'MAX_VALUE' :data.menu.popup.menuitem.collect{it.value}.max()
-  ] 
+    //wrap one row into a list
+    [
+      //this is one row definition
+      'COUNT'     :data.menu.popup.menuitem.size(),
+      'MAX_VALUE' :data.menu.popup.menuitem.collect{it.value}.max()
+    ] 
+  ]
 }
 ```
 
