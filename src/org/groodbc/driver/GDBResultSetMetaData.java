@@ -146,7 +146,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public boolean isSigned(int column) throws SQLException{
-    	return Types.isSigned( indexToType.get(column-1) );
+    	return Types.isSigned( indexToType, column );
     }
 
     /**
@@ -158,7 +158,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getColumnDisplaySize(int column) throws SQLException{
-    	return Types.getPrecision( indexToType.get(column-1) );
+    	return Types.getPrecision( indexToType, column );
     }
 
     /**
@@ -203,7 +203,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getPrecision(int column) throws SQLException{
-    	return Types.getPrecision( indexToType.get(column-1) );
+    	return Types.getPrecision( indexToType, column );
     }
 
     /**
@@ -214,7 +214,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public int getScale(int column) throws SQLException{
-    	return Types.getScale( indexToType.get(column-1) );
+    	return Types.getScale( indexToType, column );
     }
 
     /**
@@ -249,7 +249,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @see Types
      */
     public int getColumnType(int column) throws SQLException{
-    	return Types.getSqlType( indexToType.get(column-1) );
+    	return Types.getSqlType( indexToType, column );
     }
 
     /**
@@ -261,7 +261,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
      * @exception SQLException if a database access error occurs
      */
     public String getColumnTypeName(int column) throws SQLException{
-    	return Types.getSqlTypeName( indexToType.get(column-1) );
+    	return Types.getSqlTypeName( indexToType, column );
     }
 
     /**

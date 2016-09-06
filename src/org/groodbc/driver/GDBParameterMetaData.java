@@ -65,9 +65,7 @@ public class GDBParameterMetaData implements ParameterMetaData {
      * @since 1.4
      */
     public boolean isSigned(int param) throws SQLException{
-    	Class c = types.get(param);
-    	if(Number.class.isAssignableFrom(c))return true;
-    	return false;
+    	return Types.isSigned( types, param );
     }
 
     /**
@@ -86,7 +84,7 @@ public class GDBParameterMetaData implements ParameterMetaData {
      * @since 1.4
      */
     public int getPrecision(int param) throws SQLException{
-    	return Types.getPrecision( types.get(param-1) );
+    	return Types.getPrecision( types, param );
     }
 
     /**
@@ -99,7 +97,7 @@ public class GDBParameterMetaData implements ParameterMetaData {
      * @since 1.4
      */
     public int getScale(int param) throws SQLException{
-    	return Types.getScale( types.get(param-1) );
+    	return Types.getScale( types, param );
     }
 
     /**
@@ -112,7 +110,7 @@ public class GDBParameterMetaData implements ParameterMetaData {
      * @see Types
      */
     public int getParameterType(int param) throws SQLException{
-    	return Types.getSqlType( types.get(param-1) );
+    	return Types.getSqlType( types, param );
     }
 
     /**
@@ -125,7 +123,7 @@ public class GDBParameterMetaData implements ParameterMetaData {
      * @since 1.4
      */
     public String getParameterTypeName(int param) throws SQLException{
-    	return Types.getSqlTypeName( types.get(param-1) );
+    	return Types.getSqlTypeName( types, param );
     }
 
 
