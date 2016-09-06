@@ -21,6 +21,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     //private ResultSet result = null;
     private GDBResultSet result = null;
     private GDBParameterMetaData pmd = null;
+    private static String IMPORTS = "import org.groodbc.util.Strings as $\n";
     
     //private static Closures closures = new Closures();
 
@@ -37,7 +38,7 @@ public class GDBPreparedStatement implements PreparedStatement {
 			this.result=null;
 			this.sql=sql;
 			if(sql!=null){
-				Script script = con.getGroovyScript( this.sql );
+				Script script = con.getGroovyScript( IMPORTS + this.sql );
 				Map vars=script.getBinding().getVariables();
 				vars.clear();
 				vars.put("data",con.data);
@@ -64,7 +65,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public boolean execute() throws SQLException{
-    	Script script = con.getGroovyScript( sql + (param.size()>0?"\nselect.call(PARAMETERS)":"\nselect.call()") );
+    	Script script = con.getGroovyScript( IMPORTS + sql + (param.size()>0?"\nselect.call(PARAMETERS)":"\nselect.call()") );
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
 		vars.put("data",con.data);
