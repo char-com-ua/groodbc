@@ -70,7 +70,7 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
     	String s="GDBResultSetMetaData[";
     	for(int i=0;i<indexToName.size();i++){
     		if(i>0)s+=", ";
-    		s+=(String)indexToName.get(i);
+    		s+=(String)indexToName.get(i)+":"+indexToType.get(i).getName();
     	}
     	return s+"]";
     }

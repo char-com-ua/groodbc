@@ -64,7 +64,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public boolean execute() throws SQLException{
-    	Script script = con.getGroovyScript( sql + "\nselect.call(PARAMETERS)" );
+    	Script script = con.getGroovyScript( sql + (param.size()>0?"\nselect.call(PARAMETERS)":"\nselect.call()") );
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
 		vars.put("data",con.data);
