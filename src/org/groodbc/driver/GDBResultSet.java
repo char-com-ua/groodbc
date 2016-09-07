@@ -923,10 +923,11 @@ public class GDBResultSet implements ResultSet {
      */
     public BigDecimal getBigDecimal(String columnName) throws SQLException {
         Object value = this.getObject(columnName);
-    	if(value==null)return null;
-    	if(value instanceof BigDecimal)return (BigDecimal)value;
-    	if(value instanceof String)return new BigDecimal((String)value);
-        throw new GDBException("Failed to get BigDecimal type for `"+columnName+"` of "+value.getClass());
+        try{
+	        return Strings.toDecimal(value);
+        }catch(Throwable t){
+	        throw new GDBException("Failed to get BigDecimal type for `"+columnName+"` : "+t);
+        }
     }
 
     //---------------------------------------------------------------------

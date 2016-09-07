@@ -2,6 +2,7 @@
 package org.groodbc.util; 
 
 import java.util.Date;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 //import java.math.BigDecimal;
 //import java.math.RoundingMode;
@@ -68,6 +69,17 @@ public class Strings{
 			return toDate(value.substring(0,19));
 		}
 		throw new RuntimeException("Can't parse date `"+value+"`");
+	}
+	
+	public static BigDecimal toDecimal(Object value){
+    	if(value==null)return null;
+    	if(value instanceof BigDecimal)return (BigDecimal)value;
+    	if(value instanceof String)return new BigDecimal((String)value);
+    	if(value instanceof Double)return new BigDecimal(((Double)value).doubleValue());
+    	if(value instanceof Float)return new BigDecimal(((Float)value).floatValue());
+    	if(value instanceof Number)return new BigDecimal(((Number)value).longValue());
+    	if(value instanceof Boolean)return new BigDecimal( ((Boolean)value).booleanValue()?1:0 );
+        throw new NumberFormatException("Failed to convert value `"+value+"` of type `"+value.getClass()+"` to BigDecimal");
 	}
 	
 }

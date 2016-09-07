@@ -21,7 +21,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     //private ResultSet result = null;
     private GDBResultSet result = null;
     private GDBParameterMetaData pmd = null;
-    private static String IMPORTS = "import org.groodbc.util.Strings as $\n";
+    private static String IMPORTS = "import org.groodbc.util.Strings as $;\nimport java.math.BigDecimal as Decimal;\n";
     
     //private static Closures closures = new Closures();
 
@@ -42,6 +42,8 @@ public class GDBPreparedStatement implements PreparedStatement {
 				Map vars=script.getBinding().getVariables();
 				vars.clear();
 				vars.put("data",con.data);
+				vars.put("ROOT",con.data);
+				vars.put("PARAMETERS",new ArrayList()); //fake params
 				script.run();
 				Closure select = (Closure)vars.get("select");
 				Class[] parmTypes = select.getParameterTypes();
@@ -65,10 +67,23 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public boolean execute() throws SQLException{
-    	Script script = con.getGroovyScript( IMPORTS + sql + (param.size()>0?"\nselect.call(PARAMETERS)":"\nselect.call()") );
+    	StringBuilder scriptText = new StringBuilder(IMPORTS.length()+sql.length()+45+20*param.size());
+    	scriptText.append(IMPORTS);
+    	scriptText.append(sql);
+    	scriptText.append("\nreturn select.doCall(");
+    	for(int i=0;i<param.size();i++){
+	    	if(i>0)scriptText.append(",");
+	    	scriptText.append("PARAMETERS.get(");
+	    	scriptText.append(i);
+	    	scriptText.append(")");
+    	}
+    	scriptText.append(");");
+    	
+    	Script script = con.getGroovyScript( scriptText.toString() );
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
-		vars.put("data",con.data);
+		vars.put("data",con.data); //deprecated
+		vars.put("ROOT",con.data);
 		
 		//convert map to list
 		
