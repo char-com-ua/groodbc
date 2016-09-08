@@ -39,7 +39,10 @@ public class GDBResultSet implements ResultSet {
     }
     */
     public GDBResultSet(List<Map<String,Object>> rows) throws SQLException {
-    	md = new GDBResultSetMetaData(rows);
+    	this(rows,null);
+    }
+    public GDBResultSet(List<Map<String,Object>> rows, GDBResultSetMetaData rmd) throws SQLException {
+    	md = (rmd==null?new GDBResultSetMetaData(rows):rmd);
     	this.rows=rows;
 		//System.out.println("GDBResultSet() :: "+rows);
     }

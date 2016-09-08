@@ -21,6 +21,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     //private ResultSet result = null;
     private GDBResultSet result = null;
     private GDBParameterMetaData pmd = null;
+    private GDBResultSetMetaData rmd = null;
     private static String IMPORTS = "import org.groodbc.util.Strings as $;\nimport java.math.BigDecimal as Decimal;\n";
     
     //private static Closures closures = new Closures();
@@ -34,37 +35,49 @@ public class GDBPreparedStatement implements PreparedStatement {
 	
 	
 	protected void setSql(String sql)throws SQLException{
-		try{
-			this.result=null;
-			this.sql=sql;
-			if(sql!=null){
-				Script script = con.getGroovyScript( IMPORTS + this.sql );
-				Map vars=script.getBinding().getVariables();
-				vars.clear();
-				vars.put("data",con.data);
-				vars.put("ROOT",con.data);
-				vars.put("PARAMETERS",new ArrayList()); //fake params
+		this.result=null;
+		this.sql=sql;
+		if(sql!=null){
+			Script script = con.getGroovyScript( IMPORTS + this.sql );
+			Map vars=script.getBinding().getVariables();
+			vars.clear();
+			vars.put("data",con.data);
+			vars.put("ROOT",con.data);
+			vars.put("PARAMETERS",new ArrayList()); //fake params
+			try {
 				script.run();
-				Closure select = (Closure)vars.get("select");
-				Class[] parmTypes = select.getParameterTypes();
-				LinkedHashMap<String,Class> pmdMap = new LinkedHashMap();
-				param = new ArrayList(parmTypes.length);
-				for(int i=0;i<parmTypes.length;i++){
-					pmdMap.put("arg"+i, parmTypes[i]);
-					param.add(null);
-				}
-				pmd = new GDBParameterMetaData(pmdMap);
-			}else{
-				pmd = new GDBParameterMetaData(null);
+			}catch(Throwable t){
+				throw new GDBException("Script error: "+t,t);
 			}
-		}catch(Throwable t){
-			throw new GDBException("Failed to parse groovy script: "+t,t);
+			Closure select = (Closure)vars.get("select");
+			Map<String,Object> columns = (Map)vars.get("columns");
+			//columns:::
+			if(columns!=null && columns.size()>0){
+				rmd = new GDBResultSetMetaData( columns );
+			}else{
+				rmd = null;
+			}
+			//parameters:::
+			Class[] parmTypes = select.getParameterTypes();
+			LinkedHashMap<String,Class> pmdMap = new LinkedHashMap();
+			param = new ArrayList(parmTypes.length);
+			for(int i=0;i<parmTypes.length;i++){
+				pmdMap.put("arg"+i, parmTypes[i]);
+				param.add(null);
+			}
+			pmd = new GDBParameterMetaData(pmdMap);
+		}else{
+			pmd = new GDBParameterMetaData(null);
 		}
 	}
 	
     public ParameterMetaData getParameterMetaData() throws SQLException{
 		return pmd;
     }
+    public ResultSetMetaData getMetaData() throws SQLException{
+        return rmd;
+    }
+
 
     public boolean execute() throws SQLException{
     	StringBuilder scriptText = new StringBuilder(IMPORTS.length()+sql.length()+45+20*param.size());
@@ -88,11 +101,16 @@ public class GDBPreparedStatement implements PreparedStatement {
 		//convert map to list
 		
 		vars.put("PARAMETERS",param);
-		
-    	List rows = (List)script.run();
+		List rows=null;
+		try {
+	    	rows = (List)script.run();
+		}catch(Throwable t){
+			throw new GDBException("Script error: "+t,t);
+		}
+	    	
     	
     	if (rows!=null){
-    		result = new GDBResultSet(rows);
+    		result = new GDBResultSet(rows, rmd);
     		return true;
     	}else{
     		result = null;
@@ -185,11 +203,6 @@ public class GDBPreparedStatement implements PreparedStatement {
 
     public void clearParameters() throws SQLException{
     	param.clear();
-    }
-
-    public ResultSetMetaData getMetaData() throws SQLException{
-        //throw new GDBFeatureNotSupportedException();
-        return null;
     }
 
     public void setDate(int parameterIndex, java.sql.Date x, Calendar cal) throws SQLException{

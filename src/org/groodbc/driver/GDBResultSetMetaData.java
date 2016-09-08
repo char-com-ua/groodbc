@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.SortedMap;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.TreeSet;
@@ -32,20 +34,14 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
 	private List<Class> indexToType;
 	private List<String> indexToName;
 	
+	protected GDBResultSetMetaData(Map<String,Object> row0) {
+		init(row0);
+	}
+	
 	protected GDBResultSetMetaData(List<Map<String,Object>> rows) {
 		if( rows.size()>0 ){
-			nameToIndex = new HashMap();
-			indexToName = new ArrayList( new TreeSet<String>( rows.get(0).keySet() ) );
-			indexToType = new ArrayList(indexToName.size());
-			for(int i=0;i<indexToName.size();i++){
-				String name=indexToName.get(i);
-				Class type = String.class;
-				Object v = rows.get(0).get(name);
-				if(v!=null)type=v.getClass();
-				indexToType.add(type);
-				nameToIndex.put(name,new Integer(i));
-			}
-			
+			Map<String,Object> row0 = rows.get(0);
+			init(row0);
 		}else{
 			nameToIndex = new HashMap();
 			indexToName = new ArrayList();
@@ -54,6 +50,32 @@ public class GDBResultSetMetaData implements ResultSetMetaData {
 		//System.out.println("GDBResultSetMetaData() :: indexToName="+indexToName);
 		//System.out.println("GDBResultSetMetaData() :: indexToType="+indexToType);
 		//System.out.println("GDBResultSetMetaData() :: nameToIndex="+nameToIndex);
+	}
+	
+	private void init(Map<String,Object> row0){
+		if(row0 instanceof LinkedHashMap || row0 instanceof SortedMap || row0 instanceof groovy.json.internal.LazyMap){
+			//keys already ordered somehow
+			indexToName = new ArrayList( row0.keySet() );
+		}else{
+			//make keys ordered by name
+			indexToName = new ArrayList( new TreeSet<String>( row0.keySet() ) );
+		}
+		nameToIndex = new HashMap();
+		indexToType = new ArrayList(indexToName.size());
+		for(int i=0;i<indexToName.size();i++){
+			String name=indexToName.get(i);
+			Class type = String.class;
+			Object v = row0.get(name);
+			if(v==null){
+				type=String.class;
+			}else if(v instanceof Class){
+				type=(Class)v;
+			}else{
+				type=v.getClass();
+			}
+			indexToType.add(type);
+			nameToIndex.put(name,new Integer(i));
+		}
 	}
 
     /**
