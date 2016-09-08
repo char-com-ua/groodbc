@@ -158,6 +158,7 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
     
     public void setObject(int parameterIndex, Object x) throws SQLException{
+    	if(x instanceof BigDecimal)x=((BigDecimal)x).stripTrailingZeros(); // remove trailing zeros in BigDecimal received as a parameter
     	param.set( parameterIndex-1,x);
     }
 
@@ -166,39 +167,39 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
     
     public void setObject(int parameterIndex, Object x, int targetSqlType, int scaleOrLength) throws SQLException{
-    	 setObject(parameterIndex, x);
+    	setObject(parameterIndex, x);
     }
     
     public void setString(int parameterIndex, String x) throws SQLException{
-    	param.set( parameterIndex-1, x);
+    	setObject(parameterIndex, x);
     }
 
     public void setShort(int parameterIndex, short x) throws SQLException{
-    	param.set( parameterIndex-1,new Short(x));
+    	setObject(parameterIndex, new Short(x));
     }
 
     public void setInt(int parameterIndex, int x) throws SQLException{
-    	param.set( parameterIndex-1, new Integer(x));
+    	setObject(parameterIndex, new Integer(x));
     }
 
     public void setLong(int parameterIndex, long x) throws SQLException{
-    	param.set( parameterIndex-1, new Long(x));
+    	setObject(parameterIndex, new Long(x));
     }
     
     public void setFloat(int parameterIndex, float x) throws SQLException{
-    	param.set( parameterIndex-1, new Float(x));
+    	setObject(parameterIndex, new Float(x));
     }
 
     public void setDouble(int parameterIndex, double x) throws SQLException{
-    	param.set( parameterIndex-1, new Double(x));
+    	setObject(parameterIndex, new Double(x));
     }
 
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException{
-    	param.set( parameterIndex-1, x);
+    	setObject(parameterIndex, x);
     }
 
     public void setDate(int parameterIndex, java.sql.Date x) throws SQLException{
-		param.set( parameterIndex-1, x );
+    	setObject(parameterIndex, x);
     }
 
     public void clearParameters() throws SQLException{
@@ -269,11 +270,11 @@ public class GDBPreparedStatement implements PreparedStatement {
     }
 
     public void setBoolean(int parameterIndex, boolean x) throws SQLException{
-    	param.set( parameterIndex-1, new Boolean(x));
+    	setObject(parameterIndex, new Boolean(x));
     }
 
     public void setByte(int parameterIndex, byte x) throws SQLException{
-    	param.set( parameterIndex-1, new Byte(x));
+    	setObject(parameterIndex, new Byte(x));
     }
 
     public void setTime(int parameterIndex, java.sql.Time x) throws SQLException{
