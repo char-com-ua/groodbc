@@ -61,10 +61,14 @@ public class GDBConnection implements Connection {
 	}
 	
 	
-	static Script getGroovyScript(String scriptText){
-		String scriptName="groodbc_"+Long.toHexString(scriptText.hashCode())+".groovy";
-		Script script=(Script)shell.parse(scriptText, scriptName);
-		return script;
+	static Script getGroovyScript(String scriptText) throws SQLException {
+		try{
+			String scriptName="groodbc_"+Long.toHexString(scriptText.hashCode())+".groovy";
+			Script script=(Script)shell.parse(scriptText, scriptName);
+			return script;
+		}catch(Throwable t){
+			throw new GDBException("Failed to parse groovy script: "+t,t);
+		}
 	}
 	
     
