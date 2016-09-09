@@ -45,15 +45,15 @@ GDBConnection connection = new GDBConnection(data);
 ```
 ### select for all menu items
 ```groovy
-select = {-> data.menu.popup.menuitem }
+select = {-> ROOT.menu.popup.menuitem }
 ```
-* `data` is a reference to the object evaluated/passed on the level of connection.
+* `ROOT` is a reference to the object evaluated/passed on the level of connection.
 * `{ ->` means there is no input parameters in this query
 * `.menu.popup.menuitem` is an accessor for json object. the select closure must return `List<Map<String,Object>>`
 
 ### select with param
 ```groovy
-select = {String p_value-> data.menu.popup.menuitem.findAll{ it.value == p_value } }
+select = {String p_value-> ROOT.menu.popup.menuitem.findAll{ it.value == p_value } }
 ```
 
 ###  aggregated data
@@ -63,8 +63,8 @@ select = {->
     //wrap one row into a list
     [
       //this is one row definition
-      'COUNT'     :data.menu.popup.menuitem.size(),
-      'MAX_VALUE' :data.menu.popup.menuitem.collect{it.value}.max()
+      'COUNT'     :ROOT.menu.popup.menuitem.size(),
+      'MAX_VALUE' :ROOT.menu.popup.menuitem.collect{it.value}.max()
     ] 
   ]
 }
