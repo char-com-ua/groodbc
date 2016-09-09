@@ -9,12 +9,17 @@ Did you tried scripting datasource in BIRT to work with json?
 For simple cases that's enough, but when you have to describe 100+ columns in 10 datasets - it becomes painful.
 
 ## jdbc connection
+
+### driver
+`org.groodbc.driver.GDBDriver`
+
+### jdbc url
 ```groovy
 groodbc:org:<here any groovy code that returns data>
 ```
 
 
-### for example parse json file:
+### for example url with json fileparsing:
 ```groovy
 groodbc:org: new groovy.json.JsonSlurper().parse( new File("./test/data/test.json").newReader("UTF-8") )
 ```
