@@ -38,10 +38,9 @@ public class GDBPreparedStatement implements PreparedStatement {
 		this.result=null;
 		this.sql=sql;
 		if(sql!=null){
-			Script script = con.getGroovyScript( IMPORTS + this.sql );
+			Script script = con.getGroovyScript( IMPORTS + this.sql, this.sql );
 			Map vars=script.getBinding().getVariables();
 			vars.clear();
-			vars.put("data",con.data);
 			vars.put("ROOT",con.data);
 			vars.put("PARAMETERS",new ArrayList()); //fake params
 			try {
@@ -78,11 +77,11 @@ public class GDBPreparedStatement implements PreparedStatement {
         return rmd;
     }
 
-
     public boolean execute() throws SQLException{
-    	StringBuilder scriptText = new StringBuilder(IMPORTS.length()+sql.length()+45+20*param.size());
+    	StringBuilder scriptText = new StringBuilder(IMPORTS.length()+sql.length()+80+45+20*param.size());
     	scriptText.append(IMPORTS);
-    	scriptText.append(sql);
+    	scriptText.append("{ROOT->\n");  //root closure to make variables visibility
+    	scriptText.append(this.sql);
     	scriptText.append("\nreturn select.doCall(");
     	for(int i=0;i<param.size();i++){
 	    	if(i>0)scriptText.append(",");
@@ -90,12 +89,12 @@ public class GDBPreparedStatement implements PreparedStatement {
 	    	scriptText.append(i);
 	    	scriptText.append(")");
     	}
-    	scriptText.append(");");
+    	scriptText.append(");\n");
+    	scriptText.append("}(ROOT)\n");
     	
-    	Script script = con.getGroovyScript( scriptText.toString() );
+    	Script script = con.getGroovyScript( scriptText.toString(), this.sql );
     	Map vars=script.getBinding().getVariables();
 		vars.clear();
-		vars.put("data",con.data); //deprecated
 		vars.put("ROOT",con.data);
 		
 		//convert map to list
@@ -105,6 +104,8 @@ public class GDBPreparedStatement implements PreparedStatement {
 		try {
 	    	rows = (List)script.run();
 		}catch(Throwable t){
+			System.out.println("------------failed---------------");
+			System.out.println(scriptText.toString());
 			throw new GDBException("Script error: "+t,t);
 		}
 	    	

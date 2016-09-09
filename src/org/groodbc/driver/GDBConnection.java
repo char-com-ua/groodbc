@@ -9,6 +9,13 @@ import java.util.concurrent.Executor;
 
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import org.codehaus.groovy.control.CompilerConfiguration;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.WeakHashMap;
+import java.util.Map;
+
 
 //import java.util.UUID;
 //import java.io.File;
@@ -31,8 +38,9 @@ import groovy.lang.Script;
  * </ul>
  */
 public class GDBConnection implements Connection {
-	static GroovyShell shell=new GroovyShell();
-
+	static GroovyShell shell = null; //new GroovyShell();
+	static Map<String,Map<String,Class<Script>>> scriptCache = null; //nested map to use a weak hash map
+	
 	/** connection parameters */
 	Object data;
 
@@ -52,7 +60,7 @@ public class GDBConnection implements Connection {
 		Object data = null;
 		try {
 			//data = groovy.util.Eval.me(script);
-			data = getGroovyScript(script).run();
+			data = getGroovyScript(script,script).run();
 		} catch(Throwable t){
 			throw new GDBException("Failed to create script connection: "+t,t);
 		}
@@ -60,11 +68,35 @@ public class GDBConnection implements Connection {
 		return new GDBConnection( data );
 	}
 	
-	
-	static Script getGroovyScript(String scriptText) throws SQLException {
+	//script key is a script without modifiers (modifiers are used in prepared statement)
+	static Script getGroovyScript(String scriptText, String scriptKey) throws SQLException {
 		try{
-			String scriptName="groodbc_"+Long.toHexString(scriptText.hashCode())+".groovy";
-			Script script=(Script)shell.parse(scriptText, scriptName);
+			if(shell==null){
+				CompilerConfiguration conf = new CompilerConfiguration();
+				conf.setDebug(true);
+				shell = new GroovyShell(conf);
+				//scriptCache = new ConcurrentHashMap(); //
+				scriptCache = Collections.synchronizedMap( new WeakHashMap(1000) );
+			}
+			Map<String,Class<Script>> scriptsByKey = scriptCache.get(scriptKey);
+			if(scriptsByKey==null){
+				scriptsByKey = new ConcurrentHashMap(3);
+				scriptCache.put(scriptKey, scriptsByKey);
+				//System.out.println("scriptCache for key "+Long.toHexString(scriptKey.hashCode())+" created");
+			}else{
+				//System.out.println("scriptCache for key "+Long.toHexString(scriptKey.hashCode())+" exists");
+			}
+			Class<Script> clazz = scriptsByKey.get(scriptText);
+			if(clazz==null){
+				String scriptName="groodbc_"+Long.toHexString(scriptText.hashCode())+".groovy";
+				clazz = (Class<Script>) shell.parse(scriptText, scriptName).getClass();
+				scriptsByKey.put(scriptText,clazz);
+				//System.out.println("script "+clazz+" created");
+			}else{
+				//System.out.println("script "+clazz+" exists");
+			}
+			
+			Script script=(Script)clazz.newInstance();
 			return script;
 		}catch(Throwable t){
 			throw new GDBException("Failed to parse groovy script: "+t,t);
