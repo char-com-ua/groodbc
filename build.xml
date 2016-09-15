@@ -6,7 +6,6 @@
 	<property name="dest.dir.classes" value="${dest.dir}/classes" />
 	<property name="dest.dir.lib" value="${dest.dir}" />
 	<property name="artefact.name" value="${ant.project.name}" />
-	<property name="artefact" value="${artefact.name}.jar" />
 	<property name="dependency" value="./lib" />
 
 	<target name="clean">
@@ -49,6 +48,7 @@
 			</section>
 		</manifest>
 		<!--JAR-->
+		<property name="artefact" value="${artefact.name}-${svn.version}.jar" />
 		<jar basedir="${dest.dir.classes}" destfile="${dest.dir.lib}/${artefact}" manifest="${dest.dir.classes}/META-INF/manifest.mf"/>
 	</target>
 
