@@ -56,11 +56,22 @@ public class GDBConnection implements Connection {
 		this.data = data;
 	}
 
-	public static GDBConnection eval(String script) throws SQLException {
+	public static GDBConnection eval(String scriptText) throws SQLException {
+		return eval(scriptText,null);
+	}
+	public static GDBConnection eval(String scriptText, Map<String,Object> binding) throws SQLException {
 		Object data = null;
 		try {
 			//data = groovy.util.Eval.me(script);
-			data = getGroovyScript(script,script).run();
+			Script script = getGroovyScript(scriptText,scriptText);
+			Map vars=script.getBinding().getVariables();
+			vars.clear();
+			
+			if(binding!=null && binding.size()>0){
+				//set parameters for evaluation script
+				vars.putAll(binding);
+			}
+			data = script.run();
 		} catch(Throwable t){
 			throw new GDBException("Failed to create script connection: "+t,t);
 		}
